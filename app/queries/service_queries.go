@@ -25,10 +25,9 @@ func (s *ServiceQueries) GetServices() ([]models.Service, error) {
 func (sq *ServiceQueries) CreateService(s *models.Service) error {
 	query := `INSERT INTO services VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
-	_, err := sq.Exec(query, s.ID, s.Created_at, s.Updated_at, s.Service_title, s.Service_description, s.Service_status, s.Detail_model)
-	if err != nil {
-		return err
-	}
+	tx := sq.MustBegin()
+	tx.MustExec(query, s.ID, s.Created_at, s.Updated_at, s.Service_title, s.Service_description, s.Service_status, s.Detail_model)
+	tx.Commit()
 
 	return nil
 }
