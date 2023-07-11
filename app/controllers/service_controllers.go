@@ -22,7 +22,7 @@ func GetServices(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
-			"msg": "services were not found",
+			"msg": err.Error(),
 			"count": 0,
 			"services": nil,
 		})
