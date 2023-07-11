@@ -2,14 +2,17 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/ellofae/Mechanical-engineering-service/app/controllers"
+	"github.com/ellofae/Mechanical-engineering-service/pkg/utils"
+	"github.com/ellofae/Mechanical-engineering-service/pkg/configs"
+	"github.com/ellofae/Mechanical-engineering-service/pkg/routes"
 )
 
 func main() {
-    app := fiber.New()
+    app := fiber.New(configs.NewConfig())
 
-    app.Get("/services", controllers.GetServices)
-	app.Post("/services", controllers.CreateService)
+	routes.PublicRoutes(app)
+	routes.PrivateRoutes(app)
+	routes.SwaggerRoute(app)
 
-    app.Listen(":3000")
+    utils.StartServerWithGracefulShutdown(app)
 }
