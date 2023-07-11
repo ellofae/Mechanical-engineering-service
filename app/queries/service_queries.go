@@ -1,12 +1,26 @@
 package queries
 
 import (
-	"github.com/jmoiron/sqlx"
 	"github.com/ellofae/Mechanical-engineering-service/app/models"
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 )
 
 type ServiceQueries struct {
 	*sqlx.DB
+}
+
+func (s *ServiceQueries) GetService(id uuid.UUID) (models.Service, error) {
+	query := `SELECT * FROM services WHERE id = $1`
+
+	service := models.Service{}
+
+	err := s.Get(&service, query, id)
+	if err != nil {
+		return service, err
+	}
+
+	return service, nil
 }
 
 func (s *ServiceQueries) GetServices() ([]models.Service, error) {

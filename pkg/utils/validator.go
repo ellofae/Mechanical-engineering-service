@@ -21,7 +21,7 @@ func NewValidator() *validator.Validate {
 	return validate
 }
 
-func ValidateErrors(err error) map[string]string {
+func ValidatorErrors(err error) map[string]string {
 	fields := map[string]string{}
 
 	for _, err := range err.(validator.ValidationErrors) {

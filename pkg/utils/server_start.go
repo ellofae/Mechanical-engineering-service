@@ -24,7 +24,7 @@ func StartServerWithGracefulShutdown(a *fiber.App) {
 			log.Printf("Server is not shutting down! Reason: %w", err)
 		}
 		close(idleConnsClosed)
-	}
+	}()
 
 	if err := a.Listen(os.Getenv("SERVER_URL")); err != nil {
 		log.Printf("Server is not running! Reason: %w", err)
