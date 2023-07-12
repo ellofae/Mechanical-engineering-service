@@ -12,7 +12,10 @@ import (
 )
 
 func GetService(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
+	params := c.Queries()
+	uuid_param_val := params["id"]
+
+	id, err := uuid.Parse(uuid_param_val)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
