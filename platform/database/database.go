@@ -6,6 +6,7 @@ import (
 
 type Queries struct {
 	*queries.ServiceQueries
+	*queries.VehicleQueries
 }
 
 func OpenDBConnection() (*Queries, error) {
@@ -14,5 +15,8 @@ func OpenDBConnection() (*Queries, error) {
 		return nil, err
 	}
 
-	return &Queries{ServiceQueries: &queries.ServiceQueries{DB: db}}, nil
+	return &Queries{
+		ServiceQueries: &queries.ServiceQueries{DB: db},
+		VehicleQueries: &queries.VehicleQueries{DB: db},
+	}, nil
 }

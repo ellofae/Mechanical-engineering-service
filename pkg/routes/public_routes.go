@@ -10,4 +10,7 @@ func PublicRoutes(a *fiber.App) {
 
 	route.Get("/services", controllers.GetServices)
 	route.Get("/service", controllers.GetService)
+
+	route.Get("/vehicles", controllers.GetVehicles)
+	route.Get("/vehicle", controllers.GetVehicle)
 }
