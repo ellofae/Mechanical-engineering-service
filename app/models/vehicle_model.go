@@ -19,12 +19,12 @@ type Vehicle struct {
 	Vehicle_status        string     `db:"vehicle_status" json:"vehicle_status" valudate:"required,lte=128"`
 	Model                 string     `db:"model" json:"model" valudate:"required,lte=255"`
 	Model_description     string     `db:"model_description" json:"model_description" valudate:"required,lte=255"`
-	Model_characteristics ModelChars `db:"model_characteristics" json:"model_characteristics validate:"required,dive"`
+	Model_characteristics ModelChars `db:"model_characteristics" json:"model_characteristics" validate:"required,dive"`
 }
 
 type ModelChars struct {
 	Year        string  `db:"year" json:"year"`
-	Mileage     float32 `db:"mileage" json:"mileage" validate:"required,gte=0"`
+	Mileage     string `db:"mileage" json:"mileage" validate:"required,gte=0"`
 	Engine      string  `db:"engine" json:"engine" validate:"required,lte=255"`
 	Engine_spec string  `db:"engine_spec" json:"engine_spec" validate:"required,lte=255"`
 	Suspensions string  `db:"suspensions" json:"suspensions" validate:"required,lte=255"`
