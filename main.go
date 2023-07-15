@@ -36,6 +36,7 @@ func main() {
 	routes.PublicRoutes(app)
 	routes.PrivateRoutes(app)
 	routes.SwaggerRoute(app)
+	routes.AuthRoutes(app)
 
 	utils.StartServerWithGracefulShutdown(app)
 }
