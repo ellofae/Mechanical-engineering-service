@@ -4,7 +4,6 @@ WORKDIR /build
 
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
-RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 COPY . .
 

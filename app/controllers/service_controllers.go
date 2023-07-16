@@ -85,6 +85,15 @@ func CreateService(c *fiber.Ctx) error {
 		})
 	}
 
+	validate := utils.NewValidator()
+
+	if err := validate.Struct(service); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   utils.ValidatorErrors(err),
+		})
+	}
+
 	db, err := database.OpenDBConnection()
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
