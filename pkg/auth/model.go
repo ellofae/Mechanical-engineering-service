@@ -7,17 +7,16 @@ import (
 )
 
 type User struct {
-	ID         primitive.ObjectID `bson:"_id"`
-	First_name string             `bson:"first_name"`
-	Last_name  string             `bson:"last_name"`
-	Email      string             `bson:"email"`
-	Phone      string             `bson:"phone"`
-	Password   string             `bson:"password"`
-	CreatedAt  time.Time          `bson:"created_at"`
-	UpdatedAt  time.Time          `bson:"updated_at"`
+	ID         primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	First_name string             `json:"first_name" bson:"first_name" validate:"required,lte=30"`
+	Last_name  string             `json:"last_name" bson:"last_name" validate:"required,lte=30`
+	Phone      string             `json:"phone" bson:"phone" validate:"required,lte=15`
+	Password   string             `json:"password" bson:"password" validate:"required,lte=20`
+	CreatedAt  time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt  time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
 type SingInModel struct {
-	Phone    string `bson:"phone"`
-	Password string `bson:"password"`
+	Phone    string `json:"phone" bson:"phone" validate:"required,lte=15`
+	Password string `json:"password" bson:"password" validate:"required,lte=20`
 }

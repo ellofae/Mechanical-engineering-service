@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"log"
 	"os"
 	"time"
 
@@ -13,8 +14,9 @@ import (
 type MongoDB struct {
 	Client     *mongo.Client
 	Collection *mongo.Collection
-	Ctx        context.Context
 }
+
+var cred options.Credential
 
 func OpenMongoDBConnection() (*MongoDB, error) {
 	godotenv.Load(".env")
@@ -22,7 +24,10 @@ func OpenMongoDBConnection() (*MongoDB, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	clientOptions := options.Client().ApplyURI(os.Getenv("DB_MONGO_URI"))
+	cred.Username = os.Getenv("MONGO_USER")
+	cred.Password = os.Getenv("MONGO_PASSWORD")
+
+	clientOptions := options.Client().ApplyURI(os.Getenv("DB_MONGO_URI")).SetAuth(cred)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		return nil, err
@@ -32,8 +37,9 @@ func OpenMongoDBConnection() (*MongoDB, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Println("Successfully connected and pinged.")
 
-	collection := client.Database("Auth").Collection("users")
+	collection := client.Database("auth").Collection("users")
 
-	return &MongoDB{Client: client, Collection: collection, Ctx: ctx}, nil
+	return &MongoDB{Client: client, Collection: collection}, nil
 }

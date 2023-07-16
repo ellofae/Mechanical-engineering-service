@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"time"
 
 	"github.com/ellofae/Mechanical-engineering-service/app/models"
@@ -68,29 +67,6 @@ func GetVehicle(c *fiber.Ctx) error {
 	})
 }
 
-/*
-Create request test:
-	{
-    "vehicle_price": "NOT STATED",
-    "category": "R35 GT-R",
-    "title": "TS TSGold2022 Track Edition – Tokyo",
-    "vehicle_status": "AVAILABLE",
-    "model": "R35",
-    "model_description": "Based on Nissan GT-R Track Edition engineered NISMO.TOP SECRET Full Bodykit with Special Paint “TS GOLD 2022”.TOKYO AUTOSALON 2022 Show Car.",
-    "model_characteristics": [
-        {
-            "year": 1992,
-            "mileage": 94.000,
-            "engine": "VR38DETT",
-            "engine_spec": "TOP SECRET Stage1",
-            "suspensions": "TBA",
-            "bodykit": "TopSecret MY17 Full Kit",
-            "remarks": "Base: Track Edition engineered by NISMO / 2022 Tokyo AutoSalon Show Car"
-        }
-    ]
-}
-*/
-
 func CreateVehicle(c *fiber.Ctx) error {
 	vehicle := &models.Vehicle{}
 
@@ -105,8 +81,6 @@ func CreateVehicle(c *fiber.Ctx) error {
 	vehicle.ID = uuid.New()
 	vehicle.Created_at = time.Now()
 	vehicle.Vehicle_status = "AVAILABE"
-
-	log.Printf("test: ", vehicle)
 
 	validate := utils.NewValidator()
 
