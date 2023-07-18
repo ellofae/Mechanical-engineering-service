@@ -37,6 +37,7 @@ func main() {
 	routes.PrivateRoutes(app)
 	routes.SwaggerRoute(app)
 	routes.AuthRoutes(app)
+	routes.FileloaderRoutes(app)
 
 	utils.StartServerWithGracefulShutdown(app)
 }

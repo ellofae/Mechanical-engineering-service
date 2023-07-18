@@ -29,14 +29,17 @@ func checkUserExists(db *database.MongoDB, phone string) error {
 }
 
 func SingUp(c *fiber.Ctx) error {
-	user := &auth.User{}
+	// Form data
+	first_name := c.FormValue("firstName")
+	last_name := c.FormValue("lastName")
+	phone := c.FormValue("phone")
+	password := c.FormValue("password")
 
-	err := c.BodyParser(user)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+	user := &auth.User{
+		First_name: first_name,
+		Last_name:  last_name,
+		Phone:      phone,
+		Password:   password,
 	}
 
 	if user.Phone == "" || user.Password == "" || user.First_name == "" || user.Last_name == "" {
@@ -49,7 +52,10 @@ func SingUp(c *fiber.Ctx) error {
 
 	validate := utils.NewValidator()
 
-	err = validate.Struct(user)
+	user.ID = primitive.NewObjectID()
+	user.CreatedAt = time.Now()
+
+	err := validate.Struct(user)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
@@ -81,9 +87,7 @@ func SingUp(c *fiber.Ctx) error {
 		})
 	}
 
-	user.ID = primitive.NewObjectID()
 	user.Password = passwordHashed
-	user.CreatedAt = time.Now()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -96,14 +100,21 @@ func SingUp(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(fiber.Map{
-		"error": false,
-		"user":  user,
+	return c.Render("greeting", fiber.Map{
+		"First_name": user.First_name,
+		"Last_name":  user.Last_name,
+		"Phone":      user.Phone,
 	})
 }
 
 func SignIn(c *fiber.Ctx) error {
-	loginData := &auth.SingInModel{}
+	phone := c.FormValue("phone")
+	password := c.FormValue("password")
+
+	loginData := &auth.SingInModel{
+		Phone:    phone,
+		Password: password,
+	}
 
 	err := c.BodyParser(loginData)
 	if err != nil {
@@ -171,10 +182,10 @@ func SignIn(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(fiber.Map{
-		"error": false,
-		"user":  user,
-		"token": token,
+	return c.Render("login", fiber.Map{
+		"First_name": user.First_name,
+		"Last_name":  user.Last_name,
+		"Token":      token,
 	})
 }
 
@@ -268,4 +279,12 @@ func GetUsers(c *fiber.Ctx) error {
 		"error": false,
 		"users": users,
 	})
+}
+
+func RegisterUser(c *fiber.Ctx) error {
+	return c.Render("signup", fiber.Map{})
+}
+
+func LoginrUser(c *fiber.Ctx) error {
+	return c.Render("signin", fiber.Map{})
 }

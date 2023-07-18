@@ -44,7 +44,9 @@ require (
 	github.com/gofiber/jwt v0.2.0 // indirect
 	github.com/gofiber/jwt/v2 v2.2.7 // indirect
 	github.com/gofiber/swagger v0.1.12 // indirect
-	github.com/gofiber/utils v0.0.9 // indirect
+	github.com/gofiber/template v1.8.2 // indirect
+	github.com/gofiber/template/html/v2 v2.0.5 // indirect
+	github.com/gofiber/utils v1.1.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.0.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/golang/snappy v0.0.3 // indirect
