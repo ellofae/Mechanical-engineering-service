@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/ellofae/Mechanical-engineering-service/app/models"
+	"github.com/ellofae/Mechanical-engineering-service/pkg/middleware"
 	"github.com/ellofae/Mechanical-engineering-service/pkg/utils"
 	"github.com/ellofae/Mechanical-engineering-service/platform/database"
 	"github.com/gofiber/fiber/v2"
@@ -68,9 +69,26 @@ func GetVehicle(c *fiber.Ctx) error {
 }
 
 func CreateVehicle(c *fiber.Ctx) error {
+	cookie := c.Cookies("jwt")
+
+	token, err := middleware.ParseToken(cookie)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "unauthenticated",
+		})
+	}
+
+	expiry := token.Expiry
+
+	if expiry < time.Now().Unix() {
+		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
+			"message": "token expired",
+		})
+	}
+
 	vehicle := &models.Vehicle{}
 
-	err := c.BodyParser(vehicle)
+	err = c.BodyParser(vehicle)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
@@ -112,9 +130,26 @@ func CreateVehicle(c *fiber.Ctx) error {
 }
 
 func UpdateVehicle(c *fiber.Ctx) error {
+	cookie := c.Cookies("jwt")
+
+	token, err := middleware.ParseToken(cookie)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "unauthenticated",
+		})
+	}
+
+	expiry := token.Expiry
+
+	if expiry < time.Now().Unix() {
+		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
+			"message": "token expired",
+		})
+	}
+
 	vehicle := &models.Vehicle{}
 
-	err := c.BodyParser(vehicle)
+	err = c.BodyParser(vehicle)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
@@ -161,9 +196,26 @@ func UpdateVehicle(c *fiber.Ctx) error {
 }
 
 func DeleteVehicle(c *fiber.Ctx) error {
+	cookie := c.Cookies("jwt")
+
+	token, err := middleware.ParseToken(cookie)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "unauthenticated",
+		})
+	}
+
+	expiry := token.Expiry
+
+	if expiry < time.Now().Unix() {
+		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
+			"message": "token expired",
+		})
+	}
+
 	vehicle := &models.Service{}
 
-	err := c.BodyParser(vehicle)
+	err = c.BodyParser(vehicle)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,

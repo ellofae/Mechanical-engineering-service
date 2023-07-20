@@ -10,6 +10,7 @@ import (
 	"github.com/ellofae/Mechanical-engineering-service/pkg/utils"
 	"github.com/ellofae/Mechanical-engineering-service/platform/database"
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -182,6 +183,15 @@ func SignIn(c *fiber.Ctx) error {
 		})
 	}
 
+	cookie := fiber.Cookie{
+		Name:     "jwt",
+		Value:    token,
+		Expires:  time.Now().Add(time.Hour * 3),
+		HTTPOnly: true,
+	}
+
+	c.Cookie(&cookie)
+
 	return c.Render("login", fiber.Map{
 		"First_name": user.First_name,
 		"Last_name":  user.Last_name,
@@ -189,7 +199,39 @@ func SignIn(c *fiber.Ctx) error {
 	})
 }
 
+func Logout(c *fiber.Ctx) error {
+	cookie := fiber.Cookie{
+		Name:     "jwt",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HTTPOnly: true,
+	}
+
+	c.Cookie(&cookie)
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+	})
+}
+
 func GetUser(c *fiber.Ctx) error {
+	cookie := c.Cookies("jwt")
+
+	token, err := middleware.ParseToken(cookie)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "unauthenticated",
+		})
+	}
+
+	expiry := token.Expiry
+
+	if expiry < time.Now().Unix() {
+		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
+			"message": "token expired",
+		})
+	}
+
 	params := c.Queries()
 	id := params["id"]
 
@@ -240,6 +282,25 @@ func GetUser(c *fiber.Ctx) error {
 }
 
 func GetUsers(c *fiber.Ctx) error {
+	godotenv.Load(".env")
+
+	cookie := c.Cookies("jwt")
+
+	token, err := middleware.ParseToken(cookie)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "unauthenticated",
+		})
+	}
+
+	expiry := token.Expiry
+
+	if expiry < time.Now().Unix() {
+		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
+			"message": "token expired",
+		})
+	}
+
 	db, err := database.OpenMongoDBConnection()
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
