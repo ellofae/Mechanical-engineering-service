@@ -29,14 +29,14 @@
 
     SingUp JSON model:
     {
-        first_name: "Smokey",
-        last_name: "Nagata",
-        phone: "042-6237432",
-        password: "secretpassword"
+        "first_name": "Smokey",
+        "last_name": "Nagata",
+        "phone": "042-6237432",
+        "password": "secretpassword"
     }
 
     SingIn JSON model:
     {
-        phone: "042-6237432",
-        password: "secretpassword"
+        "phone": "042-6237432",
+        "password": "secretpassword"
     }

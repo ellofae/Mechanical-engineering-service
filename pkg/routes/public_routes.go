@@ -2,15 +2,16 @@ package routes
 
 import (
 	"github.com/ellofae/Mechanical-engineering-service/app/controllers"
+	"github.com/ellofae/Mechanical-engineering-service/pkg/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 
 func PublicRoutes(a *fiber.App) {
 	route := a.Group("/mechanics")
 
-	route.Get("/services", controllers.GetServices)
-	route.Get("/service", controllers.GetService)
+	route.Get("/services", middleware.AuthenticateUser, controllers.GetServices)
+	route.Get("/service", middleware.AuthenticateUser, controllers.GetService)
 
-	route.Get("/vehicles", controllers.GetVehicles)
-	route.Get("/vehicle", controllers.GetVehicle)
+	route.Get("/vehicles", middleware.AuthenticateUser, controllers.GetVehicles)
+	route.Get("/vehicle", middleware.AuthenticateUser, controllers.GetVehicle)
 }

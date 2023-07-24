@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/ellofae/Mechanical-engineering-service/pkg/auth"
@@ -30,17 +31,13 @@ func checkUserExists(db *database.MongoDB, phone string) error {
 }
 
 func SingUp(c *fiber.Ctx) error {
-	// Form data
-	first_name := c.FormValue("firstName")
-	last_name := c.FormValue("lastName")
-	phone := c.FormValue("phone")
-	password := c.FormValue("password")
-
-	user := &auth.User{
-		First_name: first_name,
-		Last_name:  last_name,
-		Phone:      phone,
-		Password:   password,
+	user := &auth.User{}
+	err := c.BodyParser(user)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
 	}
 
 	if user.Phone == "" || user.Password == "" || user.First_name == "" || user.Last_name == "" {
@@ -56,7 +53,7 @@ func SingUp(c *fiber.Ctx) error {
 	user.ID = primitive.NewObjectID()
 	user.CreatedAt = time.Now()
 
-	err := validate.Struct(user)
+	err = validate.Struct(user)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
@@ -101,21 +98,34 @@ func SingUp(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Render("greeting", fiber.Map{
-		"First_name": user.First_name,
-		"Last_name":  user.Last_name,
-		"Phone":      user.Phone,
+	return c.JSON(fiber.Map{
+		"id":         user.ID,
+		"first_name": user.First_name,
+		"last_name":  user.Last_name,
+		"phone":      user.Phone,
 	})
 }
 
-func SignIn(c *fiber.Ctx) error {
-	phone := c.FormValue("phone")
-	password := c.FormValue("password")
-
-	loginData := &auth.SingInModel{
-		Phone:    phone,
-		Password: password,
+func AddRefreshToken(ctx context.Context, db *database.MongoDB, refresh_token string, ID primitive.ObjectID) error {
+	_, err := middleware.ParseToken(refresh_token)
+	if err != nil {
+		return err
 	}
+
+	filter := bson.D{{"_id", ID}}
+	update := bson.D{{"$set", bson.D{{"refresh_token", refresh_token}}}}
+
+	result, err := db.Collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Documents updated: %v\nNew document: %v\n", result.ModifiedCount, result)
+
+	return nil
+}
+
+func SignIn(c *fiber.Ctx) error {
+	loginData := &auth.SingInModel{}
 
 	err := c.BodyParser(loginData)
 	if err != nil {
@@ -163,7 +173,6 @@ func SignIn(c *fiber.Ctx) error {
 	}
 
 	user := auth.User{}
-
 	bsonBytes, _ := bson.Marshal(result)
 	bson.Unmarshal(bsonBytes, &user)
 
@@ -175,7 +184,7 @@ func SignIn(c *fiber.Ctx) error {
 		})
 	}
 
-	token, err := middleware.GenerateToken()
+	tokens, err := middleware.GenerateTokens(user.ID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
@@ -184,29 +193,37 @@ func SignIn(c *fiber.Ctx) error {
 	}
 
 	cookie := fiber.Cookie{
-		Name:     "jwt",
-		Value:    token,
+		Name:     "access_token",
+		Value:    tokens.AccessToken,
 		Expires:  time.Now().Add(time.Hour * 3),
 		HTTPOnly: true,
 	}
-
 	c.Cookie(&cookie)
+	c.Locals("user_id", user.ID)
 
-	return c.Render("login", fiber.Map{
-		"First_name": user.First_name,
-		"Last_name":  user.Last_name,
-		"Token":      token,
+	err = AddRefreshToken(ctx, db, tokens.RefreshToken, user.ID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"id":           user.ID,
+		"first_name":   user.First_name,
+		"last_name":    user.Last_name,
+		"access_token": tokens.AccessToken,
 	})
 }
 
 func Logout(c *fiber.Ctx) error {
 	cookie := fiber.Cookie{
-		Name:     "jwt",
+		Name:     "access_token",
 		Value:    "",
 		Expires:  time.Now().Add(-time.Hour),
 		HTTPOnly: true,
 	}
-
 	c.Cookie(&cookie)
 
 	return c.JSON(fiber.Map{
@@ -215,23 +232,6 @@ func Logout(c *fiber.Ctx) error {
 }
 
 func GetUser(c *fiber.Ctx) error {
-	cookie := c.Cookies("jwt")
-
-	token, err := middleware.ParseToken(cookie)
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "unauthenticated",
-		})
-	}
-
-	expiry := token.Expiry
-
-	if expiry < time.Now().Unix() {
-		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
-			"message": "token expired",
-		})
-	}
-
 	params := c.Queries()
 	id := params["id"]
 
@@ -283,24 +283,6 @@ func GetUser(c *fiber.Ctx) error {
 
 func GetUsers(c *fiber.Ctx) error {
 	godotenv.Load(".env")
-
-	cookie := c.Cookies("jwt")
-
-	token, err := middleware.ParseToken(cookie)
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "unauthenticated",
-		})
-	}
-
-	expiry := token.Expiry
-
-	if expiry < time.Now().Unix() {
-		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
-			"message": "token expired",
-		})
-	}
-
 	db, err := database.OpenMongoDBConnection()
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -340,12 +322,4 @@ func GetUsers(c *fiber.Ctx) error {
 		"error": false,
 		"users": users,
 	})
-}
-
-func RegisterUser(c *fiber.Ctx) error {
-	return c.Render("signup", fiber.Map{})
-}
-
-func LoginrUser(c *fiber.Ctx) error {
-	return c.Render("signin", fiber.Map{})
 }
